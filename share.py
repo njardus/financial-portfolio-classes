@@ -3,13 +3,12 @@ from loguru import logger
 from alpha_vantage.timeseries import TimeSeries
 import pickle
 from os import path
+import settings
 
-# TODO: Set up magic numbers in settings file.
-# Magic numbers:
-max_retries = 15
-update_interval = 60 * 60
-key = KEY
-error_margin = 0.7
+max_retries = settings.max_retries
+update_interval = settings.update_interval
+key = settings.key
+error_margin = settings.error_margin
 
 
 class Share:
@@ -30,16 +29,22 @@ class Share:
 
     def save_file(self, data):
         outfile = open(self.filename, 'wb')
-        pickle.dump(data, outfile)
+        savedata = [self.last_updated, data]
+        pickle.dump(savedata, outfile)
         outfile.close()
 
     def load_file(self):
-        infile = open(self.filename, 'rb')
-        self.history = pickle.load(infile)
-        infile.close()
+        try:
+            infile = open(self.filename, 'rb')
+            [self.last_updated, self.history] = pickle.load(infile)
+            infile.close()
+        except:
+            logger.critical(f"No file found for {self.ticker}")
 
     def update(self):
         logger.info(f"Grabbing history for {self.ticker}.")
+
+        self.load_file()
 
         grabbed = False
         retries = 0
@@ -53,48 +58,24 @@ class Share:
 
                     data = self.clean_close_data(data)
                     data = self.fix_history(data)
-                    self.save_file(data)
-
-                    self.current_price = data.iloc[-1]['Close']
 
                     self.last_updated = datetime.now()
                     grabbed = True
+
+                    self.save_file(data)
+
                 except KeyError:
                     retries += 1
 
-        if data is None:
-            self.load_file()
-            return False
-        else:
             self.history = data
             return True
+        self.current_price = self.history.iloc[-1]['Close']
 
     def time_since_last_update(self):
         now = datetime.now()
         then = self.last_updated
 
         return (now - then).total_seconds()
-
-    @staticmethod
-    def clean_close_data(data):
-        """Function to clean closing from Alpha Vantage. The headers from Alpha Vantage are a bit odd, so this will just
-        rename them to:
-           |--Date--|--Open--|--High--|--Low--|--Close--|--Volume--|
-        Input argument is the dataframe."""
-
-        data.index.names = ['Date']
-        try:
-            data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-        except ValueError:
-            logger.error("ValueError in renaming the data columns. "
-                         "Current data info is:"
-                         ""
-                         + data.info() +
-                         ""
-                         "Current data head is: " + data.head()
-                         )
-
-        return data
 
     def fix_history(self, data):
         """Step 1: Copy data to a new dataframe
@@ -173,3 +154,24 @@ class Share:
             return True
         else:
             return False
+
+    @staticmethod
+    def clean_close_data(data):
+        """Function to clean closing from Alpha Vantage. The headers from Alpha Vantage are a bit odd, so this will just
+        rename them to:
+           |--Date--|--Open--|--High--|--Low--|--Close--|--Volume--|
+        Input argument is the dataframe."""
+
+        data.index.names = ['Date']
+        try:
+            data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+        except ValueError:
+            logger.error("ValueError in renaming the data columns. "
+                         "Current data info is:"
+                         ""
+                         + data.info() +
+                         ""
+                         "Current data head is: " + data.head()
+                         )
+
+        return data

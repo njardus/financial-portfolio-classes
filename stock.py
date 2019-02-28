@@ -39,6 +39,7 @@ class OpenPosition(Stock):
         self.days_in_trade = self.get_days_in_trade()
         self.pct = self.get_pct()
         self.annualised_pct = self.get_annualised_pct()
+
         self.target_profit_price = self.get_target_profit_price()
         self.target_loss_price = self.get_target_loss_price()
 
@@ -108,6 +109,20 @@ class OpenPosition(Stock):
         logger.info(f"|----------------------------|")
 
         return [self.pct, self.days_in_trade, self.annualised_pct]
+
+    def get_sell_signal(self):
+        # Todo: Flesh out market signals. Maybe throw it into a separate file? That'll help with getting portfolio
+        # info in..
+
+        sig = False
+
+        if (self.get_annualised_pct() >= 0.5) and (self.get_days_in_trade() >= 7) and (self.get_pct() >= 0.104):
+            sig = True
+
+        if (self.get_annualised_pct() <= -0.5) and (self.get_days_in_trade() >= 62) and (self.current_value < 35606):
+            sig = True
+
+        return sig
 
 
 class ClosedPosition(OpenPosition):

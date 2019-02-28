@@ -1,8 +1,10 @@
 from datetime import datetime
-
+from pandas import DataFrame as df
 from loguru import logger
+
 from stock import OpenPosition
 from stock import ClosedPosition
+import comms
 
 list_of_positions = []
 list_of_positions.append(OpenPosition('TBS.JO', 1.2634, datetime(2018, 4, 18), 39329))
@@ -23,8 +25,5 @@ list_of_positions.append(OpenPosition('PSG.JO', 2.056, datetime(2019, 2, 13), 25
 list_of_positions.append(OpenPosition('SNT.JO', 2.6054, datetime(2019, 2, 13), 30128))
 list_of_positions.append(OpenPosition('TKG.JO', 39.9735, datetime(2019, 2, 21), 6794))
 
-total_value = 0
-for pos in list_of_positions:
-    total_value += pos.get_current_value()/100
-
-logger.info(f"Total portfolio value: R{total_value:.2f}")
+# Todo: Implement email with summary
+comms.mail_summary(list_of_positions)
