@@ -31,8 +31,6 @@ def mail_summary(positions):
 
     message_total_value += f"{total_value:.2f}."
 
-    logger.info(message_total_value)
-
     message = message_start + message_sell_sig + message_total_value
 
     logger.debug(message)

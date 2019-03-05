@@ -14,7 +14,6 @@ error_margin = settings.error_margin
 class Share:
 
     def __init__(self, ticker):
-        logger.info(f"Create share class: {ticker}.")
         self.ticker = ticker
         self.filename = ".\\data\\" + self.ticker + ".shr"
         self.last_updated = datetime(1970, 1, 1)
@@ -42,8 +41,6 @@ class Share:
             logger.critical(f"No file found for {self.ticker}")
 
     def update(self):
-        logger.info(f"Grabbing history for {self.ticker}.")
-
         self.load_file()
 
         grabbed = False
@@ -66,6 +63,9 @@ class Share:
 
                 except KeyError:
                     retries += 1
+
+            if retries == max_retries:
+                logger.error(f"Couldn't fetch data for {self.ticker}. Is this a newly listed stock?")
 
             self.history = data
             return True

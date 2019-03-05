@@ -9,22 +9,11 @@ class Stock(Share):
         Share.__init__(self, ticker)
 
     def sma(self, period):
-        # Todo: Implement
-        # Note share.history.head():
-        # 2000-01-04
-        # 2000-01-05
-        # 2000-01-06
-        # 2000-01-07
-        # 2000-01-10
+        colname = "SMA" + str(period)
+        newcol = self.history['Close'].rolling(period).mean()
+        self.history[colname] = newcol
 
-        # Previous implimentation:
-        # colname = "SMA" + str(period)
-        # newcol = self.history['Close'].rolling(period).mean()
-        # self.history[colname] = newcol
-
-        # for index in self.history:
-        #     print(row['4. Close'])
-        pass
+        return self.history[colname].iloc[-1]
 
 
 class OpenPosition(Stock):
@@ -60,6 +49,9 @@ class OpenPosition(Stock):
         # [(1 + pct) ^ (365 / days_in_trade)] - 1
         pct = self.get_pct()
         days = self.get_days_in_trade()
+
+        if days == 0:
+            return 0
 
         growth = 1 + pct
         days_ratio = 365 / days
@@ -119,7 +111,7 @@ class OpenPosition(Stock):
         if (self.get_annualised_pct() >= 0.5) and (self.get_days_in_trade() >= 7) and (self.get_pct() >= 0.104):
             sig = True
 
-        if (self.get_annualised_pct() <= -0.5) and (self.get_days_in_trade() >= 62) and (self.current_value < 35606):
+        if (self.get_annualised_pct() <= -0.5) and (self.get_days_in_trade() >= 62) and (self.current_value < 41067):
             sig = True
 
         return sig
@@ -130,6 +122,8 @@ class ClosedPosition(OpenPosition):
     def __init__(self, open_position, close_date, close_price):
         self.ticker = open_position.ticker
         self.shares = open_position.shares
+        self.history = open_position.history
+        self.last_updated = open_position.last_updated
 
         self.entry_price = open_position.entry_price
         self.entry_date = open_position.entry_date
@@ -185,3 +179,21 @@ class ClosedPosition(OpenPosition):
 
         return [self.pct, self.days_in_trade, self.annualised_pct]
 
+
+class WatchStock(Stock):
+
+    def __init__(self, ticker):
+        super().__init__(ticker)
+
+    def worth_a_look(self):
+        # SMA 15 should be larger than SMA 50, indicating growth:
+        # SMA 50 should be larger than SMA 200, indicating a support:
+        # Current price should be above SMA 200, indicating a support:
+        # Current price should be within a couple of % of SMA15:
+        # 1 Year growth should be within range of the winning average:
+
+        # Magic numbers!
+        if (self.sma(15) > self.sma(50)) and (self.sma(50) > self.sma(200)) and (self.current_price > self.sma(200)):
+            # TODO: implement 1 year growth
+            # TODO: implement portfolio winning average
+            logger.info(f"Look at buying {self.ticker} - the moving averages line up!")
