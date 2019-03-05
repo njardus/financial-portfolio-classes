@@ -1,5 +1,8 @@
+import settings
+
 from datetime import datetime
 from loguru import logger
+from twilio.rest import Client
 
 
 def mail_summary(positions):
@@ -35,3 +38,24 @@ def mail_summary(positions):
 
     logger.debug(message)
     # gmailmessage(address, subject, message)
+    send_whatsapp(message)
+
+
+def send_whatsapp(message):
+    logger.debug("Attempting Whatsapp")
+
+    account_sid = "AC82f690e21f20a117e859b1a80c35dd86"
+    auth_token = "4f64e4a4176342adfa3cd428b04d7b37"
+
+    tonumber = 'whatsapp:' + settings.whatsapp_number()
+    logger.debug(tonumber)
+
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        body=message,
+        from_='whatsapp:+14155238886',
+        to=tonumber
+    )
+
+    logger.info(f"Whatsapp sent: {message.sid} to {tonumber}.")
