@@ -6,7 +6,6 @@ from os import path
 import settings
 
 max_retries = settings.max_retries
-update_interval = settings.update_interval
 key = settings.key
 error_margin = settings.error_margin
 
@@ -47,7 +46,9 @@ class Share:
         retries = 0
         data = None
 
-        if self.time_since_last_update() > update_interval:
+        rightnow = datetime.now()
+
+        if self.time_since_last_update() > settings.update_interval(rightnow):
             while (grabbed is False) and (retries < max_retries):
                 try:
                     ts = TimeSeries(key=key, output_format='pandas', indexing_type='date')
@@ -56,7 +57,7 @@ class Share:
                     data = self.clean_close_data(data)
                     data = self.fix_history(data)
 
-                    self.last_updated = datetime.now()
+                    self.last_updated = rightnow
                     grabbed = True
 
                     self.save_file(data)
