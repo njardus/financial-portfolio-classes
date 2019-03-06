@@ -1,19 +1,8 @@
-from datetime import datetime
-from pandas import DataFrame as df
-from loguru import logger
-
-from portfolio import Watchlist
-from stock import Stock, OpenPosition, ClosedPosition
 from positionhistory import *
 import comms
 
-# Test NPN for purchase:
-# npn = Watchlist("NPN.JO")
-# npn.worth_a_look()
-
-
-
+# Todo: Up the rate of update to once every 10 minutes, and implement better filtering logic in the comms package so that we only mail an update once an hour or if action is required.
 
 # Todo: Implement email with summary
-comms.mail_summary(list_of_open_positions)
-# comms.mail_summary(list_of_closed_positions)
+comms.send_summary(list_of_open_positions)
+# comms.send_summary(list_of_closed_positions)

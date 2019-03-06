@@ -5,7 +5,7 @@ from loguru import logger
 from twilio.rest import Client
 
 
-def mail_summary(positions):
+def send_summary(positions):
     total_value = 0
     index = 0
 
@@ -32,25 +32,29 @@ def mail_summary(positions):
 
         index += 1
 
+    total_value += 44788/100 # TEMP to add the MCG that is not being pulled from Alpha Vantage right now
+
     message_total_value += f"{total_value:.2f}."
 
     message = message_start + message_sell_sig + message_total_value
 
     logger.debug(message)
-    # gmailmessage(address, subject, message)
-    send_whatsapp(message)
+
+    if settings.send_whatsapp():
+        send_whatsapp(message)
+
+    # TODO:
+    # if settings.send_email():
+    #     send_email(message)
 
 
 def send_whatsapp(message):
     logger.debug("Attempting Whatsapp")
 
-    account_sid = "AC82f690e21f20a117e859b1a80c35dd86"
-    auth_token = "4f64e4a4176342adfa3cd428b04d7b37"
-
     tonumber = 'whatsapp:' + settings.whatsapp_number()
     logger.debug(tonumber)
 
-    client = Client(account_sid, auth_token)
+    client = Client(settings.whatsapp_account_sid(), settings.whatsapp_auth_token())
 
     message = client.messages.create(
         body=message,

@@ -1,4 +1,3 @@
-from loguru import logger
 from stock import OpenPosition, ClosedPosition, Stock
 
 
@@ -25,7 +24,7 @@ class StockList:
 
 class Watchlist(StockList):
 
-    def __init__(self, ticker):
+    def __init__(self):
         StockList.__init__()
 
     def add(self, ticker):
@@ -40,9 +39,20 @@ class OpenList(StockList):
         StockList.__init__()
 
     def add(self, ticker, number_of_shares, entry_date, entry_price):
-        if not self.is_in_list(ticker):
-            self.stocklist.append(OpenPosition(ticker, number_of_shares, entry_date, entry_price))
-            self.number_of_entries += 1
+        self.stocklist.append(OpenPosition(ticker, number_of_shares, entry_date, entry_price))
+        self.number_of_entries += 1
+
+    def close(self, open_pos, closed_list, close_date, close_price):
+        self.stocklist.remove(open_pos)
+        self.number_of_entries -= 1
+        closed_list.add(open_pos, close_date, close_price)
+
+    def total_value(self):
+        total = 0
+        for pos in self.stocklist:
+            total += pos.get_current_value() / 100
+
+        return total
 
 
 class ClosedList(StockList):
@@ -51,6 +61,16 @@ class ClosedList(StockList):
         self.closed_list = []
 
     def add(self, position, closing_date, closing_price):
-        if not self.is_in_list(ticker):
-            self.stocklist.append(ClosedPosition(position, closing_date, closing_price))
-            self.number_of_entries += 1
+        self.stocklist.append(ClosedPosition(position, closing_date, closing_price))
+        self.number_of_entries += 1
+
+    def rem(self, pos):
+        self.stocklist.remove(pos)
+        self.number_of_entries -= 1
+
+    def total_value(self):
+        total = 0
+        for pos in self.stocklist:
+            total += pos.get_current_value() / 100
+
+        return total
