@@ -3,12 +3,13 @@ from loguru import logger
 from alpha_vantage.timeseries import TimeSeries
 import pickle
 from os import path
+
+import config
 import settings
 
 max_retries = settings.max_retries
 key = settings.key
 error_margin = settings.error_margin
-
 
 class Share:
 
@@ -63,7 +64,14 @@ class Share:
                     self.save_file(data)
 
                 except KeyError:
+                    config.errorlevel += 1
                     retries += 1
+
+                except ValueError:
+                    config.errorlevel += 1
+                    if config.errorlevel >= 0:
+                        logger.debug(f"A ValueError occurred while attempting to download the data for {self.ticker}. "
+                                     f"This likely means that the share is not listed yet.")
 
             if retries == max_retries:
                 logger.error(f"Couldn't fetch data for {self.ticker}. Is this a newly listed stock?")

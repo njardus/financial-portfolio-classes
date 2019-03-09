@@ -1,3 +1,4 @@
+import config
 import settings
 
 from datetime import datetime
@@ -37,6 +38,9 @@ def send_summary(positions):
     message_total_value += f"{total_value:.2f}."
 
     message = message_start + message_sell_sig + message_total_value
+
+    if config.errorlevel >= 0:
+        message += "\n\n Please note that an error occurred while processing the portfolio."
 
     logger.debug(message)
 
