@@ -11,6 +11,7 @@ max_retries = settings.max_retries
 key = settings.key
 error_margin = settings.error_margin
 
+
 class Share:
 
     def __init__(self, ticker):

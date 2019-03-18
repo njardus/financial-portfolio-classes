@@ -33,16 +33,12 @@ def send_summary(positions):
 
         index += 1
 
-    total_value += 44788/100 # TEMP to add the MCG that is not being pulled from Alpha Vantage right now
-
     message_total_value += f"{total_value:.2f}."
 
     message = message_start + message_sell_sig + message_total_value
 
     if config.errorlevel >= 0:
         message += "\n\n Please note that an error occurred while processing the portfolio."
-
-    logger.debug(message)
 
     if settings.send_whatsapp():
         send_whatsapp(message)
@@ -53,11 +49,7 @@ def send_summary(positions):
 
 
 def send_whatsapp(message):
-    logger.debug("Attempting Whatsapp")
-
     tonumber = 'whatsapp:' + settings.whatsapp_number()
-    logger.debug(tonumber)
-
     client = Client(settings.whatsapp_account_sid(), settings.whatsapp_auth_token())
 
     message = client.messages.create(
@@ -65,5 +57,3 @@ def send_whatsapp(message):
         from_='whatsapp:+14155238886',
         to=tonumber
     )
-
-    logger.info(f"Whatsapp sent: {message.sid} to {tonumber}.")
